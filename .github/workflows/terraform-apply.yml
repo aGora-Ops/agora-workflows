@@ -21,6 +21,8 @@ on:
     secrets:
       AWS_APPLY_ROLE_ARN:
         required: true
+      ARGOCD_REPO_PAT:
+        required: false
 
 jobs:
   terraform-apply:
@@ -58,4 +60,6 @@ jobs:
           path: ${{ inputs.working_directory }}
 
       - name: Terraform Apply
+        env:
+          TF_VAR_argocd_repo_pat: ${{ secrets.ARGOCD_REPO_PAT }}
         run: terraform apply -input=false -auto-approve tfplan.binary
