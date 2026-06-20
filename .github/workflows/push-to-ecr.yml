@@ -28,9 +28,6 @@ jobs:
     name: Push ${{ inputs.service_name }}:${{ inputs.git_tag }}
     runs-on: ubuntu-latest
     if: inputs.tag_exists == 'false'
-    permissions:
-      id-token: write
-      contents: write
     outputs:
       tag: ${{ inputs.git_tag }}
     steps:

@@ -34,9 +34,6 @@ jobs:
   generate-tag:
     name: Generate Image Tag
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
       tag_exists: ${{ steps.check.outputs.tag_exists }}
