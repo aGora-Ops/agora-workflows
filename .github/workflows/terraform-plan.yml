@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: "1.8.0"
+      alert_email:
+        description: "Value for the required var.alert_email (passed as TF_VAR)"
+        required: false
+        type: string
+        default: ""
     secrets:
       AWS_PLAN_ROLE_ARN:
         required: true
@@ -60,9 +65,13 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        env:
+          # var.alert_email has no default; supply it without committing the
+          # address. Other vars come from the auto-loaded terraform.tfvars in
+          # each environment directory (no -var-file needed for dir-per-env).
+          TF_VAR_alert_email: ${{ inputs.alert_email }}
         run: |
           terraform plan \
-            -var-file="${{ inputs.environment }}.tfvars" \
             -input=false \
             -out=tfplan.binary \
             -no-color 2>&1 | tee plan.txt
