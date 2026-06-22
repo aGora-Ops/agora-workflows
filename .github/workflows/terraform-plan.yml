@@ -41,6 +41,11 @@ jobs:
       id-token: write
       contents: read
       pull-requests: write
+    env:
+      # Step-level `if:` can't reference `secrets.*` directly — only env/job
+      # outputs are visible there. Hoist it once so the Infracost steps below
+      # can gate on whether the secret is actually set.
+      HAS_INFRACOST_KEY: ${{ secrets.INFRACOST_API_KEY != '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -87,20 +92,20 @@ jobs:
           retention-days: 1
 
       - name: Setup Infracost
-        if: github.event_name == 'pull_request' && secrets.INFRACOST_API_KEY != ''
+        if: github.event_name == 'pull_request' && env.HAS_INFRACOST_KEY == 'true'
         uses: infracost/actions/setup@v3
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Generate Infracost cost diff
-        if: github.event_name == 'pull_request' && secrets.INFRACOST_API_KEY != ''
+        if: github.event_name == 'pull_request' && env.HAS_INFRACOST_KEY == 'true'
         run: |
           infracost breakdown --path tfplan.binary \
             --format json \
             --out-file /tmp/infracost.json
 
       - name: Post Infracost comment to PR
-        if: github.event_name == 'pull_request' && secrets.INFRACOST_API_KEY != ''
+        if: github.event_name == 'pull_request' && env.HAS_INFRACOST_KEY == 'true'
         run: |
           infracost comment github \
             --path /tmp/infracost.json \
