@@ -41,10 +41,10 @@ jobs:
           TARGET="${{ inputs.target_branch }}"
           REPO_URL="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com/${SERVICE}"
 
-          if [ "$TARGET" = "main" ]; then
-            VALUES_FILE="charts/${SERVICE}/values.prod.yaml"
-          else
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "$TARGET" = "dev" ] || [ "$TARGET" = "develop" ]; then
             VALUES_FILE="charts/${SERVICE}/values.dev.yaml"
+          else
+            VALUES_FILE="charts/${SERVICE}/values.prod.yaml"
           fi
 
           if [ ! -f "$VALUES_FILE" ]; then
