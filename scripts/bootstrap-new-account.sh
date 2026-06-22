@@ -32,12 +32,15 @@
 #
 # Optional:
 #   export ENABLE_KARPENTER=true           # default: true
-#   export KPS_CHART_VERSION=65.5.1        # must match platform/main.tf's targetRevision
+#   export KPS_CHART_VERSION=65.5.1        # must match dev-platform/main.tf's targetRevision
 
 set -euo pipefail
 
 INFRA_DIR="${1:?Usage: $0 /path/to/agora-infra/environments/dev}"
-PLATFORM_DIR="${INFRA_DIR}/platform"
+# environments/dev-platform is a SIBLING of environments/dev (not nested) — both
+# are independent Terraform root modules with their own state; the platform
+# layer just happens to read the base layer's outputs via a data source.
+PLATFORM_DIR="${INFRA_DIR}-platform"
 AWS_REGION="${AWS_REGION:-us-east-1}"
 CLUSTER_NAME="${CLUSTER_NAME:?Set CLUSTER_NAME to match terraform.tfvars cluster_name}"
 ALERT_EMAIL="${ALERT_EMAIL:?Set ALERT_EMAIL — required Terraform variable, no default}"
