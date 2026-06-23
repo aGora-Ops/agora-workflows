@@ -72,4 +72,18 @@ jobs:
           git add .
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "chore(${{ inputs.service_name }}): bump image to ${{ inputs.image_tag }}"
-          git push
+
+          # Multiple services can land a helm-update around the same time,
+          # each touching a different chart's values file — never a real
+          # content conflict, just a race on whoever pushes to main first.
+          # Rebase and retry instead of failing the whole CI run on a race.
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push rejected (attempt ${i}/5) — pulling and retrying..."
+            git pull --rebase origin main
+            sleep $((RANDOM % 5 + 1))
+          done
+          echo "Failed to push after 5 attempts"
+          exit 1
