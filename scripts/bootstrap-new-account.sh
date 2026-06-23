@@ -33,6 +33,13 @@
 # Optional:
 #   export ENABLE_KARPENTER=true           # default: true
 #   export KPS_CHART_VERSION=65.5.1        # must match dev-platform/main.tf's targetRevision
+#   export DOMAIN_NAME=ustbiteshub.online  # default: empty (skips argocd./grafana. HTTPRoutes
+#                                          # entirely — ArgoCD/Grafana stay reachable only via
+#                                          # kubectl port-forward, same as before the single-NLB
+#                                          # consolidation). Must match var.domain_name already
+#                                          # set in environments/dev/terraform.tfvars, since that's
+#                                          # what controls whether CloudFront/Route53 actually
+#                                          # alias argocd./grafana. to anything.
 
 set -euo pipefail
 
@@ -47,6 +54,7 @@ ALERT_EMAIL="${ALERT_EMAIL:?Set ALERT_EMAIL — required Terraform variable, no 
 ARGOCD_REPO_PAT="${ARGOCD_REPO_PAT:?Set ARGOCD_REPO_PAT — GitHub PAT with read access to agora-helm}"
 ENABLE_KARPENTER="${ENABLE_KARPENTER:-true}"
 KPS_CHART_VERSION="${KPS_CHART_VERSION:-65.5.1}"
+DOMAIN_NAME="${DOMAIN_NAME:-}"
 
 log() { echo; echo "=== $* ==="; }
 
@@ -133,12 +141,17 @@ kubectl apply --server-side -f "${TMP_KPS_DIR}/kube-prometheus-stack/charts/crds
 rm -rf "$TMP_KPS_DIR"
 
 # ── Pass 3: everything else (Gateway, ReferenceGrant, ArgoCD per-service ──
-# apps, Karpenter NodePool/EC2NodeClass) — needs the CRDs from passes 1-2.
+# apps, Karpenter NodePool/EC2NodeClass, argocd./grafana. HTTPRoutes) —
+# needs the CRDs from passes 1-2. domain_name is optional: leave DOMAIN_NAME
+# unset to skip the HTTPRoutes (count = 0 on both resources) and keep
+# ArgoCD/Grafana reachable only via kubectl port-forward, same as before the
+# single-NLB consolidation that added them.
 log "Pass 3/4: terraform apply (remaining platform resources)"
 ( cd "$PLATFORM_DIR" && \
   TF_VAR_argocd_repo_pat="$ARGOCD_REPO_PAT" \
   terraform apply -input=false -auto-approve \
-    -var="enable_karpenter=${ENABLE_KARPENTER}" )
+    -var="enable_karpenter=${ENABLE_KARPENTER}" \
+    -var="domain_name=${DOMAIN_NAME}" )
 
 # ── Pass 4: force the prometheus-operator to pick up CRDs that existed ──
 # AFTER it first started (its informer cache doesn't hot-reload new CRD
@@ -160,4 +173,6 @@ echo "  - GitHub OAuth App + agora/dev/api Secrets Manager fields (GITHUB_CLIENT
 echo "  - Bedrock cross-account role ARN + agent IDs in agora/dev/worker secret"
 echo "  - Route53 hosted zone + ACM cert + nlb_hostname/hosted_zone_id/acm_certificate_arn"
 echo "    in terraform.tfvars, if you want CloudFront (re-run terraform apply in $INFRA_DIR after)"
+echo "    -- DOMAIN_NAME above must match this terraform.tfvars value, or argocd./grafana."
+echo "    won't have anything to alias to even though their HTTPRoutes got created"
 echo "  - Register GitHub webhooks per org via the running app's Settings page"
