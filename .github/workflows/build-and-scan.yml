@@ -145,7 +145,13 @@ jobs:
     name: Trivy Vulnerability Scan
     runs-on: ubuntu-latest
     needs: [generate-tag, build-image]
-    if: inputs.run_trivy && github.event_name != 'push'
+    # Used to skip on push entirely (PR-only) — meant the actual path that
+    # ships to ECR had zero vulnerability scanning. Now runs on every event;
+    # callers must add `needs: [build, trivy]` on their push job (not just
+    # `needs: build`) for a CRITICAL/HIGH finding to actually block the
+    # image from reaching ECR, not just fail the workflow after it's already
+    # pushed.
+    if: inputs.run_trivy
     steps:
       - name: Download image artifact
         uses: actions/download-artifact@v4
