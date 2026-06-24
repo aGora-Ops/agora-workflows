@@ -169,3 +169,9 @@ jobs:
           format: table
           severity: CRITICAL,HIGH
           exit-code: "1"
+          # Only block on CVEs that have an available fix. OS-level vulns with
+          # status "affected"/"fix_deferred" (no upstream patch yet) are noise
+          # here — the base image vendor hasn't shipped a fix so we can't act
+          # on them. This still catches anything where a patched version exists
+          # but we haven't pinned to it.
+          ignore-unfixed: true
