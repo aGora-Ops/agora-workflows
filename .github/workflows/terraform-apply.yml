@@ -18,6 +18,9 @@ on:
         required: false
         type: string
         default: "1.8.0"
+      alert_email:
+        required: true
+        type: string
     secrets:
       AWS_APPLY_ROLE_ARN:
         required: true
@@ -62,4 +65,5 @@ jobs:
       - name: Terraform Apply
         env:
           TF_VAR_argocd_repo_pat: ${{ secrets.ARGOCD_REPO_PAT }}
+          TF_VAR_alert_email: ${{ inputs.alert_email }}
         run: terraform apply -input=false -auto-approve tfplan.binary
