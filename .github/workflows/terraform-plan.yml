@@ -49,6 +49,7 @@ jobs:
 
   checkov:
     name: Checkov IaC Scan
+    needs: fmt
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -86,7 +87,7 @@ jobs:
 
   validate:
     name: Validate
-    needs: fmt
+    needs: checkov
     runs-on: ubuntu-latest
     defaults:
       run:
