@@ -1,4 +1,4 @@
-name: Update Helm Chart Image Tag
+﻿name: Update Helm Chart Image Tag
 
 on:
   workflow_call:
@@ -12,7 +12,7 @@ on:
       github_org:
         required: false
         type: string
-        default: aGora-Ops
+        default: Stagecraft-Ops
       aws_region:
         required: false
         type: string
@@ -23,10 +23,10 @@ jobs:
     name: Update ${{ inputs.service_name }} → ${{ inputs.image_tag }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout agora-helm
+      - name: Checkout stagecraft-helm
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.github_org }}/agora-helm
+          repository: ${{ inputs.github_org }}/stagecraft-helm
           token: ${{ secrets.HELM_CHARTS_TOKEN }}
           ref: main
 
@@ -59,8 +59,8 @@ jobs:
 
       - name: Commit and push
         run: |
-          git config user.name "agora-bot"
-          git config user.email "bot@agora-ops.github.com"
+          git config user.name "stagecraft-bot"
+          git config user.email "bot@stagecraft-ops.github.com"
           git add .
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "chore(${{ inputs.service_name }}): bump image to ${{ inputs.image_tag }}"

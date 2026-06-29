@@ -1,4 +1,4 @@
-name: Failure Notification
+﻿name: Failure Notification
 
 on:
   workflow_call:
@@ -64,7 +64,7 @@ jobs:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         run: |
-          SUBJECT="[aGorA] CI/CD Failure — ${{ inputs.service_name }}"
+          SUBJECT="[Stagecraft] CI/CD Failure — ${{ inputs.service_name }}"
           BODY="<html><body>
           <h2>Pipeline failure in <b>${{ inputs.service_name }}</b></h2>
           <p>
@@ -85,7 +85,7 @@ jobs:
             --header 'Content-Type: application/json' \
             --data "{
               \"personalizations\": [{\"to\": [{\"email\": \"$NOTIFY_EMAIL\"}]}],
-              \"from\": {\"email\": \"ci@agora-ops.github.com\", \"name\": \"aGorA CI\"},
+              \"from\": {\"email\": \"ci@stagecraft-ops.github.com\", \"name\": \"Stagecraft CI\"},
               \"subject\": \"$SUBJECT\",
               \"content\": [{\"type\": \"text/html\", \"value\": \"$BODY\"}]
             }"
